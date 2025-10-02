@@ -49,8 +49,9 @@ The project includes two interactive frontends built with Streamlit:
 1.  **Chatbot UI:** A user-facing chat interface to interact with the caching system.
 2.  **Performance Dashboard:** A live, auto-refreshing dashboard that provides real-time observability into key performance metrics like cache hit rate, latency, and request breakdown.
 
-| Chatbot UI                                | 
-| ![Chatbot UI Screenshot]<img width="695" height="850" alt="image" src="https://github.com/user-attachments/assets/7b62bc02-e8ed-4b92-bf63-5f052793e676" />
+| Chatbot UI                                                         |
+| --------------------------------------------------------------------------------------- |
+| <img width="695" height="850" alt="image" src="https://github.com/user-attachments/assets/7b62bc02-e8ed-4b92-bf63-5f052793e676" /> |
  
 ---
 
