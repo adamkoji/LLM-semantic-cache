@@ -43,6 +43,17 @@ This project implements a sophisticated, multi-layered caching system that under
 This system also includes an **LRU (Least Recently Used) eviction policy** to manage the cache size and a **quality admission policy** to prevent caching low-quality responses.
 
 ---
+## Live Demo Components
+
+The project includes two interactive frontends built with Streamlit:
+1.  **Chatbot UI:** A user-facing chat interface to interact with the caching system.
+2.  **Performance Dashboard:** A live, auto-refreshing dashboard that provides real-time observability into key performance metrics like cache hit rate, latency, and request breakdown.
+
+| Chatbot UI                                | Performance Dashboard                          |
+| ----------------------------------------- | ---------------------------------------------- |
+| ![Chatbot UI Screenshot]<img width="695" height="850" alt="image" src="https://github.com/user-attachments/assets/7b62bc02-e8ed-4b92-bf63-5f052793e676" />
+ 
+---
 
 ## Performance Metrics
 
@@ -56,7 +67,8 @@ A load test simulating 100 user prompts demonstrated the system's effectiveness,
 
 ![Latency Comparison Chart]<img width="977" height="579" alt="image" src="https://github.com/user-attachments/assets/cccad68f-e388-4e0d-b11c-c7650e417bbb" />
 
-![Performance Breakdown Chart](chart_performance_breakdown.png)
+![Performance Breakdown Chart]<img width="591" height="581" alt="image" src="https://github.com/user-attachments/assets/7b261150-8026-494e-af47-f282ebfd77fd" />
+
 
 ---
 
