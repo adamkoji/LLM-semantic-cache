@@ -1,6 +1,3 @@
-# This dictionary acts as a simple, in-memory database to store our metrics.
-# For a real production application, you would use a more robust tool like
-# Prometheus, but this is perfect for a self-contained demo.
 METRICS = {
     "cache_hits": 0,
     "cache_misses": 0,
@@ -28,4 +25,5 @@ def get_metrics():
     Returns the current state of the metrics dictionary.
     This is the function called by the /metrics/ endpoint in main.py.
     """
+
     return METRICS
