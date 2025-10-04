@@ -14,10 +14,8 @@ except Exception as e:
     print(f"Error configuring Gemini API: {e}")
     GEMINI_MODEL = None
 
-# --- Load the Local Embedding Model ---
 try:
-    # --- UPGRADE ---
-    # Switched to a much more powerful embedding model for better semantic understanding.
+    
     EMBEDDING_MODEL = SentenceTransformer('BAAI/bge-large-en-v1.5')
     print("BGE Large embedding model loaded successfully.")
 except Exception as e:
@@ -41,4 +39,5 @@ def get_embedding(text: str) -> list[float]:
         print("Embedding model not loaded.")
         return []
     embedding = EMBEDDING_MODEL.encode(text)
+
     return embedding.tolist()
