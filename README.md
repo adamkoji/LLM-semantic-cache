@@ -82,3 +82,4 @@ _This chart shows our tiered cache (right) significantly outperforming a simple 
 ---
 
 ## Project Structure
+ <img width="695" height="850" alt="image" src="https://github.com/adamkoji/LLM-semantic-cache/edit/main/prj-structure.png" /> 
