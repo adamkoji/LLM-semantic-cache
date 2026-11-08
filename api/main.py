@@ -4,7 +4,7 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .services import cache_manager, llm_provider, metrics_manager
+from .services import cache_manager, llm_provider, metrics_manager, benchmark_service
 import proactive_cacher
 
 app = FastAPI(
@@ -51,6 +51,11 @@ class CacheConfigUpdateRequest(BaseModel):
 class ProactiveWarmRequest(BaseModel):
     min_cluster_size: int = 3
     eps: float = 0.42
+
+
+class BenchmarkRunRequest(BaseModel):
+    num_prompts: int = 40
+    reset_cache_first: bool = True
 
 
 # --- Root & Health Endpoints ---
@@ -347,6 +352,25 @@ def delete_cache_entry_endpoint(entry_id: str):
 def clear_cache_endpoint():
     proactive_cacher.clear_missed_prompts()
     return cache_manager.clear_all_caches()
+
+
+# --- Live Benchmark, Cold-Start & Resource Analytics Endpoints ---
+@app.post("/benchmark/run")
+def run_benchmark_endpoint(request: BenchmarkRunRequest | None = None):
+    num_prompts = request.num_prompts if request else 40
+    reset_first = request.reset_cache_first if request else True
+    return benchmark_service.run_live_mechanism_comparison(
+        num_prompts=num_prompts,
+        reset_cache_first=reset_first,
+    )
+
+
+@app.get("/benchmark/resources")
+def get_benchmark_resources_endpoint(num_entries: int = 100000, vector_dim: int = 384):
+    return benchmark_service.calculate_resource_footprint(
+        num_entries=num_entries,
+        vector_dim=vector_dim,
+    )
 
 
 # --- Baseline Endpoints for Benchmark Comparison ---

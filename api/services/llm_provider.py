@@ -18,6 +18,8 @@ os.environ.setdefault(
     "SENTENCE_TRANSFORMERS_HOME",
     os.getenv("SENTENCE_TRANSFORMERS_HOME", os.environ["HF_HOME"]),
 )
+os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 try:
     os.makedirs(os.environ["HF_HOME"], exist_ok=True)
 except Exception:
@@ -69,7 +71,7 @@ def get_embedding_model() -> SentenceTransformer | None:
         models_to_try.append("BAAI/bge-base-en-v1.5")
 
     for model_name in models_to_try:
-        for local_only in (False, True):
+        for local_only in (True, False):
             try:
                 mode_str = " (local_files_only=True)" if local_only else ""
                 print(f"--- Loading Embedding Model: {model_name}{mode_str} ---")

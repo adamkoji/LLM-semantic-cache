@@ -1,9 +1,8 @@
-
 .env
 .venv/
 venv/
 __pycache__/
+.pytest_cache/
 .chroma_cache/
 .cache/
-.pytest_cache/
-
+cache_misses.log
