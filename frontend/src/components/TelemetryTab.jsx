@@ -83,11 +83,11 @@ export default function TelemetryTab({
   const maxLat = Math.max(avgLlm, avgT2, avgT1, 100);
 
   return (
-    <div className="max-w-6xl w-full mx-auto px-6 py-10 space-y-7">
+    <div className="max-w-6xl w-full min-w-0 mx-auto px-3.5 sm:px-6 py-6 md:py-10 space-y-6 sm:space-y-7 overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
             Analytics &amp; Cost Savings
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -96,7 +96,7 @@ export default function TelemetryTab({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
           <button
             type="button"
             onClick={handleSimulateTraffic}
@@ -167,7 +167,7 @@ export default function TelemetryTab({
       )}
 
       {/* 4-Card KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         <div className="semantiq-card rounded-2xl p-5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
@@ -251,9 +251,9 @@ export default function TelemetryTab({
       </div>
 
       {/* Distribution & Latency Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left: Tier Resolution Split */}
-        <div className="semantiq-card rounded-2xl p-6 space-y-5">
+        <div className="semantiq-card rounded-2xl p-5 sm:p-6 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Tier Resolution Distribution
@@ -278,7 +278,7 @@ export default function TelemetryTab({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-1">
             <div className="p-3.5 rounded-xl bg-zinc-50/80 dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.07]">
               <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300 font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />

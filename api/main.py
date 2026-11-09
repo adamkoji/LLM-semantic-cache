@@ -127,6 +127,8 @@ def process_prompt(request: PromptRequest, background_tasks: BackgroundTasks):
                 "tier1_checked": False,
                 "tier2_checked": False,
                 "llm_called": True,
+                "cascade_step": llm_result.get("cascade_step"),
+                "cascade_attempts": llm_result.get("cascade_attempts", []),
             },
         }
 
@@ -263,6 +265,8 @@ def process_prompt(request: PromptRequest, background_tasks: BackgroundTasks):
             "guard_blocked": t2_detail["guard_blocked"],
             "guard_reason": t2_detail["guard_reason"],
             "llm_called": True,
+            "cascade_step": llm_result.get("cascade_step"),
+            "cascade_attempts": llm_result.get("cascade_attempts", []),
         },
     }
 
@@ -386,6 +390,15 @@ def process_prompt_no_cache(request: PromptRequest):
         "latency_ms": latency_ms,
         "latency": round(latency_ms / 1000.0, 4),
         "model": llm_result["model"],
+        "pipeline_trace": {
+            "normalized_prompt": cache_manager.normalize_prompt(request.prompt),
+            "temporal_bypass": False,
+            "tier1_checked": False,
+            "tier2_checked": False,
+            "llm_called": True,
+            "cascade_step": llm_result.get("cascade_step"),
+            "cascade_attempts": llm_result.get("cascade_attempts", []),
+        },
     }
 
 

@@ -169,11 +169,11 @@ export default function BenchmarkLabTab({ onAfterBenchmark }) {
   }
 
   return (
-    <div className="max-w-6xl w-full mx-auto px-6 py-10 space-y-7">
+    <div className="max-w-6xl w-full min-w-0 mx-auto px-3.5 sm:px-6 py-6 md:py-10 space-y-6 sm:space-y-7 overflow-x-hidden">
       {/* Header + Primary Run Benchmark Button */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
             Benchmarks &amp; Capacity Lab
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -182,7 +182,7 @@ export default function BenchmarkLabTab({ onAfterBenchmark }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
           <div className="flex items-center p-1 rounded-full bg-white/85 dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] shadow-sm text-xs font-mono">
             {[25, 40, 60].map((size) => (
               <button
@@ -284,7 +284,7 @@ export default function BenchmarkLabTab({ onAfterBenchmark }) {
           </div>
 
           {/* 3 Minimal Comparison Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
             {benchResult.systems.map((sys, idx) => {
               const isSemantic = idx === 2;
               return (
@@ -466,7 +466,7 @@ export default function BenchmarkLabTab({ onAfterBenchmark }) {
         </div>
 
         {resourceData && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 text-xs font-mono">
             <div className="p-4 rounded-xl bg-zinc-50 dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.08]">
               <div className="text-zinc-400 dark:text-zinc-500 font-sans">
                 Raw Vector

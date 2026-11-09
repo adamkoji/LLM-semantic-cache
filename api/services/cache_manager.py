@@ -742,11 +742,14 @@ def clear_all_caches() -> dict:
 
     collection = get_collection()
     t2_count = collection.count()
-    try:
-        chroma_client.delete_collection(name="llm_cache")
-    except Exception:
-        pass
-    get_collection()
+    if t2_count > 0:
+        try:
+            existing = collection.get(include=[])
+            existing_ids = existing.get("ids") if existing else []
+            if existing_ids:
+                collection.delete(ids=existing_ids)
+        except Exception as e:
+            print(f"Warning: Could not clear Tier-2 collection items: {e}")
 
     return {
         "status": "cleared",

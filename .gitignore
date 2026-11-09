@@ -6,3 +6,7 @@ __pycache__/
 .chroma_cache/
 .cache/
 cache_misses.log
+frontend/node_modules/
+frontend/dist/
+node_modules/
+

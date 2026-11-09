@@ -262,11 +262,11 @@ export default function ProactiveAndExplorerTab({
   });
 
   return (
-    <div className="max-w-6xl w-full mx-auto px-6 py-10 space-y-7">
+    <div className="max-w-6xl w-full min-w-0 mx-auto px-3.5 sm:px-6 py-6 md:py-10 space-y-6 sm:space-y-7 overflow-x-hidden">
       {/* Header + Segmented Toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
             Cache Vault
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
@@ -280,7 +280,7 @@ export default function ProactiveAndExplorerTab({
           <button
             type="button"
             onClick={() => setSection("vectors")}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+            className={`flex-1 sm:flex-initial text-center justify-center px-3 sm:px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
               section === "vectors"
                 ? "sidebar-item-active text-indigo-950 dark:text-white font-semibold"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -292,7 +292,7 @@ export default function ProactiveAndExplorerTab({
           <button
             type="button"
             onClick={() => setSection("proactive")}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+            className={`flex-1 sm:flex-initial text-center justify-center px-3 sm:px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
               section === "proactive"
                 ? "sidebar-item-active text-indigo-950 dark:text-white font-semibold"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -304,12 +304,12 @@ export default function ProactiveAndExplorerTab({
       </div>
 
       {notice && (
-        <div className="px-4 py-3 rounded-2xl bg-indigo-50/90 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
+        <div className="px-4 py-3 rounded-2xl bg-indigo-50/90 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200 flex items-center justify-between gap-2">
           <span>{notice}</span>
           <button
             type="button"
             onClick={() => setNotice(null)}
-            className="text-indigo-500 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white cursor-pointer"
+            className="text-indigo-500 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white cursor-pointer shrink-0"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -320,8 +320,8 @@ export default function ProactiveAndExplorerTab({
       {section === "vectors" && (
         <div className="space-y-5">
           {/* Search & + Add Entry Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="relative flex-1 w-full sm:max-w-md">
               <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"

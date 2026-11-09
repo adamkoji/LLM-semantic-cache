@@ -2,6 +2,7 @@ import os
 import re
 import time
 import random
+import requests
 from dotenv import load_dotenv
 
 # --- Load Environment Variables ---
@@ -32,23 +33,30 @@ try:
 except ImportError:
     genai = None
 
-# --- Configure Official google-genai SDK & Gemini 3.x Model Cascade ---
-API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-_raw_cascade = [
-    os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-    "gemini-3.8-flash",
+# --- Configure 3-Node Gemini Failover Cascade (15.0s Per-Node Timeout) ---
+API_KEY = (os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
+LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "15.0"))
+
+# Exact 3-Node Cascade Order:
+# 4a. Primary: gemini-3.6-flash
+# 4b. Fallback 1: gemini-3.5-flash-lite
+# 4c. Fallback 2: gemini-3.8-flash
+MODEL_CASCADE: list[str] = [
     "gemini-3.6-flash",
     "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
 ]
-MODEL_CASCADE: list[str] = []
-for _m in _raw_cascade:
-    if _m and _m not in MODEL_CASCADE:
-        MODEL_CASCADE.append(_m)
+
+CASCADE_STEPS: list[tuple[str, str]] = [
+    ("4a. Primary: gemini-3.6-flash", "gemini-3.6-flash"),
+    ("4b. Fallback 1: gemini-3.5-flash-lite", "gemini-3.5-flash-lite"),
+    ("4c. Fallback 2: gemini-3.8-flash", "gemini-3.8-flash"),
+]
 
 genai_client = None
-if genai is not None and API_KEY and API_KEY.strip() and API_KEY.strip() != "your_api_key_here":
+if genai is not None and API_KEY and API_KEY != "your_api_key_here":
     try:
-        genai_client = genai.Client(api_key=API_KEY.strip())
+        genai_client = genai.Client(api_key=API_KEY)
     except Exception as e:
         print(f"Warning: Could not initialize google-genai client: {e}")
         genai_client = None
@@ -302,39 +310,154 @@ def _get_fallback_response(prompt: str) -> str:
 
 def generate_llm_answer(prompt: str) -> dict:
     """
-    Generates an LLM response using the official google-genai SDK and Gemini 3.x free-tier
-    model cascade, falling back automatically to the deterministic generator if offline or rate-limited.
+    Executes the 3-node Gemini HTTP failover cascade with a 15.0s per-node timeout:
+      4a. Primary: gemini-3.6-flash (15s timeout)
+      4b. Fallback 1: gemini-3.5-flash-lite (15s timeout)
+      4c. Fallback 2: gemini-3.8-flash (15s timeout)
+      4d. Local Fallback Safety Net (_get_fallback_response)
     """
     force_fallback = os.getenv("FORCE_FALLBACK_LLM", "false").strip().lower() in ("true", "1", "yes")
+    cascade_attempts: list[dict] = []
 
-    if not force_fallback and genai_client is not None:
-        for model_name in MODEL_CASCADE:
-            try:
-                response = genai_client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                )
-                text = getattr(response, "text", None)
-                if text and text.strip():
-                    clean_text = text.strip()
-                    tokens_used = max(1, int(len( prompt.split() ) * 1.3 + len(clean_text.split()) * 1.3))
-                    return {
-                        "response": clean_text,
-                        "model": model_name,
-                        "tokens_used": tokens_used,
-                        "is_fallback": False,
+    if not force_fallback and API_KEY and API_KEY != "your_api_key_here":
+        for step_label, model_name in CASCADE_STEPS:
+            node_start = time.perf_counter()
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={API_KEY}"
+            payload = {
+                "contents": [
+                    {
+                        "parts": [{"text": prompt}],
                     }
-            except Exception as e:
-                print(f"DEBUG: Gemini model '{model_name}' failed ({e}), trying next in cascade...")
-                continue
+                ]
+            }
+            try:
+                resp = requests.post(
+                    url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=LLM_TIMEOUT_SECONDS,
+                )
+                node_ms = round((time.perf_counter() - node_start) * 1000.0, 2)
 
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates") or []
+                    text_parts = []
+                    if candidates:
+                        parts = (candidates[0].get("content") or {}).get("parts") or []
+                        for part in parts:
+                            if isinstance(part, dict) and part.get("text"):
+                                text_parts.append(part["text"])
+                    clean_text = "".join(text_parts).strip()
+
+                    if clean_text:
+                        cascade_attempts.append(
+                            {
+                                "step": step_label,
+                                "model": model_name,
+                                "succeeded": True,
+                                "status_code": 200,
+                                "latency_ms": node_ms,
+                                "reason": None,
+                            }
+                        )
+                        tokens_used = max(
+                            1,
+                            int(len(prompt.split()) * 1.3 + len(clean_text.split()) * 1.3),
+                        )
+                        return {
+                            "response": clean_text,
+                            "model": model_name,
+                            "tokens_used": tokens_used,
+                            "is_fallback": False,
+                            "cascade_step": step_label,
+                            "cascade_attempts": cascade_attempts,
+                        }
+                    else:
+                        reason = "Empty response candidates"
+                        print(f"DEBUG: {step_label} returned empty text, shifting to next node...")
+                        cascade_attempts.append(
+                            {
+                                "step": step_label,
+                                "model": model_name,
+                                "succeeded": False,
+                                "status_code": resp.status_code,
+                                "latency_ms": node_ms,
+                                "reason": reason,
+                            }
+                        )
+                else:
+                    reason = f"HTTP {resp.status_code}"
+                    try:
+                        err_msg = resp.json().get("error", {}).get("message")
+                        if err_msg:
+                            reason = f"HTTP {resp.status_code}: {err_msg[:80]}"
+                    except Exception:
+                        pass
+                    print(f"DEBUG: {step_label} failed ({reason}), shifting to next node...")
+                    cascade_attempts.append(
+                        {
+                            "step": step_label,
+                            "model": model_name,
+                            "succeeded": False,
+                            "status_code": resp.status_code,
+                            "latency_ms": node_ms,
+                            "reason": reason,
+                        }
+                    )
+            except requests.exceptions.Timeout:
+                node_ms = round((time.perf_counter() - node_start) * 1000.0, 2)
+                reason = f"Timeout after {LLM_TIMEOUT_SECONDS}s"
+                print(f"DEBUG: {step_label} timed out ({reason}), shifting to next node...")
+                cascade_attempts.append(
+                    {
+                        "step": step_label,
+                        "model": model_name,
+                        "succeeded": False,
+                        "status_code": None,
+                        "latency_ms": node_ms,
+                        "reason": reason,
+                    }
+                )
+            except Exception as e:
+                node_ms = round((time.perf_counter() - node_start) * 1000.0, 2)
+                reason = str(e)[:80]
+                print(f"DEBUG: {step_label} error ({reason}), shifting to next node...")
+                cascade_attempts.append(
+                    {
+                        "step": step_label,
+                        "model": model_name,
+                        "succeeded": False,
+                        "status_code": None,
+                        "latency_ms": node_ms,
+                        "reason": reason,
+                    }
+                )
+
+    # 4d. Local Fallback Safety Net
+    fb_start = time.perf_counter()
     fallback_text = _get_fallback_response(prompt)
+    fb_ms = round((time.perf_counter() - fb_start) * 1000.0, 2)
+    cascade_attempts.append(
+        {
+            "step": "4d. Local Fallback Safety Net",
+            "model": "deterministic-fallback-v3",
+            "succeeded": True,
+            "status_code": 200,
+            "latency_ms": fb_ms,
+            "reason": "All 3 Gemini nodes failed/timed out"
+            if len(cascade_attempts) > 0
+            else "Offline / Force Fallback Mode",
+        }
+    )
     tokens_used = max(1, int(len(prompt.split()) * 1.3 + len(fallback_text.split()) * 1.3))
     return {
         "response": fallback_text,
         "model": "deterministic-fallback-v3",
         "tokens_used": tokens_used,
         "is_fallback": True,
+        "cascade_step": "4d. Local Fallback Safety Net",
+        "cascade_attempts": cascade_attempts,
     }
 
 

@@ -296,14 +296,14 @@ export default function PlaygroundTab({
           />
 
           {/* Bottom Bar inside the Prompt Box */}
-          <div className="flex items-center justify-between pt-3 mt-1">
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap pt-3 mt-1">
             {/* Left Side: Circular + Button & Pill Selector */}
             <div className="flex items-center gap-2 relative">
               <button
                 type="button"
                 onClick={handleCycleSamplePrompt}
                 title="Cycle sample verification prompt"
-                className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-white/[0.08] hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-300 flex items-center justify-center hover:rotate-90 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+                className="w-9 h-9 shrink-0 rounded-full bg-zinc-100 dark:bg-white/[0.08] hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-300 flex items-center justify-center hover:rotate-90 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -311,7 +311,7 @@ export default function PlaygroundTab({
               <button
                 type="button"
                 onClick={() => setShowModeMenu((prev) => !prev)}
-                className="bg-zinc-100/90 dark:bg-white/[0.08] hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 text-zinc-800 dark:text-zinc-200 hover:text-indigo-950 dark:hover:text-white text-xs font-medium px-3.5 py-2 rounded-full border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400/40 flex items-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
+                className="bg-zinc-100/90 dark:bg-white/[0.08] hover:bg-indigo-50/80 dark:hover:bg-indigo-500/20 text-zinc-800 dark:text-zinc-200 hover:text-indigo-950 dark:hover:text-white text-xs font-medium px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200 dark:focus-visible:ring-indigo-400/40 flex items-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer whitespace-nowrap"
               >
                 <span>
                   {cacheMode === "auto"
@@ -322,7 +322,7 @@ export default function PlaygroundTab({
               </button>
 
               {showModeMenu && (
-                <div className="absolute left-0 bottom-12 w-64 rounded-2xl bg-white/95 dark:bg-[#10131E]/95 backdrop-blur-2xl border border-black/[0.08] dark:border-white/[0.1] p-3.5 shadow-[0_20px_50px_rgba(15,23,42,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.65)] space-y-3 z-30 animate-fade-up">
+                <div className="absolute left-0 bottom-12 w-64 max-w-[calc(100vw-3rem)] rounded-2xl bg-white/95 dark:bg-[#10131E]/95 backdrop-blur-2xl border border-black/[0.08] dark:border-white/[0.1] p-3.5 shadow-[0_20px_50px_rgba(15,23,42,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.65)] space-y-3 z-30 animate-fade-up">
                   <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                     Routing Mode
                   </div>
@@ -425,7 +425,7 @@ export default function PlaygroundTab({
                   type="button"
                   onClick={handleStopExecution}
                   title="Stop current execution"
-                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-full px-5 py-2.5 text-xs font-medium shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-full px-4 py-2 sm:px-5 sm:py-2.5 text-xs font-medium shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <span className="relative flex items-center justify-center w-3.5 h-3.5">
                     <span className="absolute inset-0 rounded-full border-2 border-white/35 border-t-white animate-spin" />
@@ -438,7 +438,7 @@ export default function PlaygroundTab({
                   type="button"
                   disabled={!promptInput.trim()}
                   onClick={() => handleSendPrompt()}
-                  className="group bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white rounded-full px-5 py-2.5 text-xs font-medium flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all duration-200 cursor-pointer"
+                  className="group bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white rounded-full px-4 py-2 sm:px-5 sm:py-2.5 text-xs font-medium flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all duration-200 cursor-pointer"
                 >
                   <span>Send</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
@@ -460,7 +460,7 @@ export default function PlaygroundTab({
   // --- EMPTY / CENTERED HERO STATE ---
   if (history.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+      <div className="flex-1 flex flex-col items-center justify-center w-full min-w-0 px-3.5 sm:px-6 py-6 md:py-12 overflow-x-hidden">
         <div className="flex flex-col items-center text-center w-full max-w-2xl">
           {/* Stylized Calligraphic "Semantiq" Brand Wordmark with Ambient Pastel Halo */}
           <div className="relative flex items-center justify-center mb-3">
@@ -468,7 +468,7 @@ export default function PlaygroundTab({
               aria-hidden="true"
               className="pointer-events-none absolute -inset-x-10 -inset-y-4 rounded-full bg-gradient-to-r from-indigo-300/30 via-fuchsia-300/30 to-cyan-300/30 dark:from-indigo-500/25 dark:via-fuchsia-500/25 dark:to-cyan-500/25 blur-2xl opacity-80"
             />
-            <div className="relative text-5xl md:text-6xl brand-calligraphic select-none cursor-default hover:scale-105 hover:-translate-y-0.5 transition-all duration-500">
+            <div className="relative text-4xl sm:text-5xl md:text-6xl brand-calligraphic select-none cursor-default hover:scale-105 hover:-translate-y-0.5 transition-all duration-500">
               Semantiq
             </div>
           </div>
@@ -477,7 +477,7 @@ export default function PlaygroundTab({
           <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
             Hey! Semantiq Cache Engine 👋
           </div>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl px-2 text-center leading-tight font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-6 sm:mb-8">
             Ask Anything, Cached{" "}
             <span className="bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-cyan-500 dark:from-indigo-400 dark:via-fuchsia-400 dark:to-cyan-300 bg-clip-text text-transparent">
               Instantly
@@ -497,14 +497,16 @@ export default function PlaygroundTab({
                   type="button"
                   disabled={isLoading}
                   onClick={() => handleSendPrompt(item.prompt)}
-                  className="group bg-white/80 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.08] backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.09] hover:border-indigo-200/80 dark:hover:border-indigo-400/35 rounded-2xl px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-200 hover:text-indigo-950 dark:hover:text-white shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_25px_-6px_rgba(99,102,241,0.16)] dark:hover:shadow-[0_10px_25px_-6px_rgba(99,102,241,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                  className="group w-full sm:w-auto justify-between sm:justify-start text-left text-xs sm:text-sm bg-white/80 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.08] backdrop-blur-xl border border-black/[0.06] dark:border-white/[0.09] hover:border-indigo-200/80 dark:hover:border-indigo-400/35 rounded-2xl px-3.5 sm:px-4 py-2.5 text-zinc-700 dark:text-zinc-200 hover:text-indigo-950 dark:hover:text-white shadow-[0_2px_12px_rgb(0,0,0,0.03)] hover:shadow-[0_10px_25px_-6px_rgba(99,102,241,0.16)] dark:hover:shadow-[0_10px_25px_-6px_rgba(99,102,241,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 flex items-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  <span
-                    className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 ${item.iconColor}`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 ${item.iconColor}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="leading-snug">{item.prompt}</span>
                   </span>
-                  <span className="leading-snug">{item.prompt}</span>
                   <ArrowRight className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 opacity-50 -translate-x-0.5 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
                 </button>
               );
@@ -517,7 +519,7 @@ export default function PlaygroundTab({
 
   // --- ACTIVE CONVERSATION / RESPONSE CARDS ---
   return (
-    <div className="flex-1 flex flex-col justify-between max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 gap-6">
+    <div className="flex-1 flex flex-col justify-between max-w-3xl w-full min-w-0 mx-auto px-3.5 sm:px-6 py-6 md:py-8 gap-6 overflow-x-hidden">
       <div className="space-y-5">
         {history.map((item) => {
           const isTraceOpen = Boolean(expandedTraces[item.id]);
@@ -565,7 +567,7 @@ export default function PlaygroundTab({
               {/* Expandable 3-Stage Pipeline Breakdown Drawer */}
               {isTraceOpen && (
                 <div className="mt-3 pt-4 border-t border-black/[0.06] dark:border-white/[0.08] space-y-3 text-xs animate-fade-up">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 font-mono">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono">
                     {/* Stage 1 */}
                     <div
                       className={`p-3 rounded-2xl border ${
@@ -651,13 +653,13 @@ export default function PlaygroundTab({
 
                   {/* Cosine Similarity Progress Bar */}
                   <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.08] space-y-1.5 font-mono">
-                    <div className="flex justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
                       <span>
                         Cosine Similarity: {simVal.toFixed(4)} (Threshold:{" "}
                         {Number(threshold).toFixed(2)})
                       </span>
                       {item.matched_prompt && (
-                        <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[280px]">
+                        <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-full sm:max-w-[280px]">
                           Nearest: &ldquo;{item.matched_prompt}&rdquo;
                         </span>
                       )}
@@ -691,7 +693,7 @@ export default function PlaygroundTab({
 
                   {item.pipeline_trace?.cascade_attempts?.length > 0 && (
                     <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/[0.08] space-y-2 font-mono text-[11px]">
-                      <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-300 font-semibold">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 text-zinc-600 dark:text-zinc-300 font-semibold">
                         <span>Tier-3 Gemini Failover Cascade (15.0s timeout/node)</span>
                         <span className="text-indigo-600 dark:text-indigo-300">
                           {item.pipeline_trace.cascade_step}
@@ -701,7 +703,7 @@ export default function PlaygroundTab({
                         {item.pipeline_trace.cascade_attempts.map((att, idx) => (
                           <div
                             key={`${att.step}-${idx}`}
-                            className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]"
+                            className="flex flex-wrap items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]"
                           >
                             <span className="text-zinc-700 dark:text-zinc-200 truncate">
                               {att.step}
