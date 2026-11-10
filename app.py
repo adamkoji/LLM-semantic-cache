@@ -1,5 +1,15 @@
 import os
 import uvicorn
+
+try:
+    import spaces
+
+    @spaces.GPU
+    def _zerogpu_health_probe():
+        return "ok"
+except ImportError:
+    pass
+
 from api.main import app
 
 if __name__ == "__main__":
