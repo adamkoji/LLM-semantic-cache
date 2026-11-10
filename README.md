@@ -1,3 +1,13 @@
+---
+title: Semantiq API
+emoji: ⚡
+colorFrom: indigo
+colorTo: pink
+sdk: gradio
+app_file: app.py
+pinned: false
+---
+
 # Semantiq — 3-Tier LLM Semantic Cache for Inference Optimization
 
 **Semantiq** is a production-grade **3-Tier Semantic Caching & Inference Optimization Engine** that sits in front of Large Language Model (LLM) APIs. By combining **Tier-1 O(1) normalized SHA-256 exact lookup**, **Tier-2 ChromaDB HNSW cosine similarity search (`BAAI/bge-small-en-v1.5`)** with **entity, number, and antonym false-positive guardrails**, and a **Tier-3 3-node Gemini failover cascade**, Semantiq eliminates **~76% of redundant LLM API calls** and reduces response latency from **~1.5s down to <15ms**.
