@@ -103,6 +103,22 @@ def is_temporal_query(prompt: str) -> tuple[bool, str | None]:
 
 
 # --- Smart Guardrail #2: Semantic False-Positive Guard ---
+CONTRACTION_MAP = {
+    r"\bwhat['’]?s\b": "what is",
+    r"\bhow['’]?s\b": "how is",
+    r"\bwho['’]?s\b": "who is",
+    r"\bwhere['’]?s\b": "where is",
+    r"\bwhen['’]?s\b": "when is",
+    r"\bwhy['’]?s\b": "why is",
+    r"\bthat['’]?s\b": "that is",
+    r"\bit['’]?s\b": "it is",
+    r"\bi['’]?m\b": "i am",
+    r"\bpls\b": "please",
+    r"\bplz\b": "please",
+    r"\bu\b": "you",
+    r"\bur\b": "your",
+}
+
 ABBREVIATION_MAP = {
     r"\bml\b": "machine learning",
     r"\bai\b": "artificial intelligence",
@@ -161,15 +177,18 @@ PLANET_ENTITIES = {
 
 STOPWORDS = {
     "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-    "what", "which", "who", "whom", "whose", "where", "when", "why", "how",
+    "what", "whats", "which", "who", "whos", "whom", "whose", "where", "wheres",
+    "when", "whens", "why", "whys", "how", "hows", "thats", "im",
     "can", "could", "would", "should", "will", "shall", "may", "might", "must",
     "do", "does", "did", "done", "doing", "have", "has", "had", "having",
-    "you", "your", "yours", "me", "my", "mine", "i", "we", "our", "ours",
+    "you", "u", "your", "ur", "yours", "me", "my", "mine", "i", "we", "us", "our", "ours",
     "they", "them", "their", "he", "him", "his", "she", "her", "it", "its",
     "to", "of", "in", "on", "at", "for", "with", "about", "from", "by", "as",
     "into", "onto", "upon", "out", "up", "down", "over", "under", "around",
-    "explain", "tell", "describe", "give", "summary", "define", "meaning",
-    "mean", "simple", "terms", "please", "help", "know", "known", "called",
+    "explain", "tell", "describe", "give", "show", "summary", "define", "meaning",
+    "mean", "simple", "simply", "terms", "briefly", "please", "pls", "plz",
+    "hey", "hi", "hello", "help", "know", "known", "called", "name",
+    "country", "city", "state", "nation",
     "most", "famous", "largest", "biggest", "giant", "great", "many",
     "work", "works", "working", "way", "ways", "some", "any", "this", "that",
 }
@@ -177,13 +196,21 @@ STOPWORDS = {
 
 def _expand_abbreviations(text: str) -> str:
     expanded = normalize_prompt(text)
+    for pattern, replacement in CONTRACTION_MAP.items():
+        expanded = re.sub(pattern, replacement, expanded)
+    # Strip possessive 's (e.g., "france's" -> "france")
+    expanded = re.sub(r"['’]s\b", "", expanded)
     for pattern, replacement in ABBREVIATION_MAP.items():
         expanded = re.sub(pattern, replacement, expanded)
     return expanded
 
 
 def _tokenize(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9']+", text.lower())
+    return [
+        tok.rstrip("'")
+        for tok in re.findall(r"[a-z0-9']+", text.lower())
+        if tok.rstrip("'")
+    ]
 
 
 def passes_entity_and_negation_guard(query_prompt: str, matched_prompt: str) -> tuple[bool, str | None]:
@@ -272,7 +299,8 @@ def passes_entity_and_negation_guard(query_prompt: str, matched_prompt: str) -> 
     if "capital" in q_content and "capital" in m_content:
         q_subj = q_content - {"capital", "country", "city", "nation", "state"}
         m_subj = m_content - {"capital", "country", "city", "nation", "state"}
-        if q_subj != m_subj:
+        # Only block when subjects do not share a common core subject token
+        if not (q_subj & m_subj) and (q_subj or m_subj):
             return (
                 False,
                 f"Subject mismatch for capital query: {sorted(q_subj)} vs {sorted(m_subj)}",

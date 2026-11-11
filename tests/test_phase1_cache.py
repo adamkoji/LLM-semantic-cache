@@ -98,6 +98,16 @@ def test_4_false_positive_guard_protection():
     assert res_fr.status_code == 200
     assert "Paris" in res_fr.json()["response"]
 
+    # Informal contractions & possessives for France MUST pass guardrail and hit Tier-2
+    for valid_paraphrase in ("whats france capital", "france's capital?"):
+        res_valid = client.post("/process-prompt/", json={"prompt": valid_paraphrase})
+        assert res_valid.status_code == 200
+        data_valid = res_valid.json()
+        assert data_valid["from_cache"] is True
+        assert data_valid["cache_tier"] == 2
+        assert data_valid["guard_blocked"] is False
+        assert "Paris" in data_valid["response"]
+
     # Query Germany -> must NOT hit France
     res_de = client.post("/process-prompt/", json={"prompt": "What is the capital of Germany?"})
     assert res_de.status_code == 200
@@ -106,6 +116,23 @@ def test_4_false_positive_guard_protection():
     assert data_de["cache_tier"] is None
     assert data_de["guard_blocked"] is True
     assert "Berlin" in data_de["response"]
+
+    # Remove Germany entry so "whats germany capital" is tested against cached France
+    for entry in cache_manager.list_cache_entries(50):
+        if "germany" in (entry.get("prompt") or "").lower():
+            cache_manager.delete_cache_entry(entry["id"])
+
+    passed_de, _ = cache_manager.passes_entity_and_negation_guard(
+        "whats germany capital", "What is the capital of France?"
+    )
+    assert passed_de is False
+
+    res_de_short = client.post("/process-prompt/", json={"prompt": "whats germany capital"})
+    assert res_de_short.status_code == 200
+    data_de_short = res_de_short.json()
+    assert data_de_short["from_cache"] is False
+    assert data_de_short["cache_tier"] is None
+    assert "Berlin" in data_de_short["response"]
 
     # Seed Install Docker
     res_inst = client.post("/process-prompt/", json={"prompt": "How do I install Docker?"})
