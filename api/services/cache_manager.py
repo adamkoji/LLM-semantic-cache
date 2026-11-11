@@ -5,6 +5,7 @@ import uuid
 import hashlib
 import threading
 from collections import OrderedDict
+import numpy as np
 import redis
 import chromadb
 from chromadb.config import Settings
@@ -526,7 +527,7 @@ def search_semantic_cache_detailed(prompt: str) -> dict:
     results = collection.query(
         query_embeddings=[prompt_embedding],
         n_results=n_results,
-        include=["metadatas", "documents", "distances"],
+        include=["metadatas", "documents", "distances", "embeddings"],
     )
 
     if not results.get("ids") or not results["ids"][0]:
@@ -545,6 +546,13 @@ def search_semantic_cache_detailed(prompt: str) -> dict:
     distances_list = results["distances"][0]
     metadatas_list = results["metadatas"][0]
     documents_list = results["documents"][0] if results.get("documents") else [None] * len(ids_list)
+    embeddings_list = (
+        results["embeddings"][0]
+        if results.get("embeddings") is not None and len(results["embeddings"]) > 0
+        else [None] * len(ids_list)
+    )
+    q_vec = np.asarray(prompt_embedding, dtype=np.float32).reshape(-1)
+    q_norm = float(np.linalg.norm(q_vec)) or 1.0
 
     top_blocked_info = None
     best_overall_sim = 0.0
@@ -553,7 +561,16 @@ def search_semantic_cache_detailed(prompt: str) -> dict:
 
     for idx, hit_id in enumerate(ids_list):
         distance = float(distances_list[idx])
-        similarity = round(max(0.0, min(1.0, 1.0 - distance)), 4)
+        dist_sim = 1.0 - distance
+        dot_sim = 0.0
+        stored_emb = embeddings_list[idx] if idx < len(embeddings_list) else None
+        if stored_emb is not None:
+            s_vec = np.asarray(stored_emb, dtype=np.float32).reshape(-1)
+            s_norm = float(np.linalg.norm(s_vec))
+            if s_norm > 1e-6 and q_vec.shape == s_vec.shape:
+                dot_sim = float(np.dot(q_vec, s_vec) / (q_norm * s_norm))
+
+        similarity = round(max(0.0, min(1.0, max(dist_sim, dot_sim))), 4)
         meta = dict(metadatas_list[idx] or {})
         matched_prompt = meta.get("prompt") or documents_list[idx] or ""
 

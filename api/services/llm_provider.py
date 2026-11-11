@@ -3,6 +3,7 @@ import re
 import time
 import random
 import requests
+import numpy as np
 from dotenv import load_dotenv
 
 # --- Load Environment Variables ---
@@ -61,15 +62,15 @@ if genai is not None and API_KEY and API_KEY != "your_api_key_here":
         print(f"Warning: Could not initialize google-genai client: {e}")
         genai_client = None
 
-# --- Singleton Normalized Embedding Engine ---
+# --- Singleton Normalized Embedding Engine (Lazy-Loaded on CPU) ---
 EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 _EMBEDDING_MODEL: SentenceTransformer | None = None
 
 
-def get_embedding_model() -> SentenceTransformer | None:
-    """Lazily loads or returns the singleton SentenceTransformer model."""
+def _get_or_load_embedding_model(force_reload: bool = False) -> SentenceTransformer | None:
+    """Lazily loads or returns the singleton SentenceTransformer model on CPU."""
     global _EMBEDDING_MODEL
-    if _EMBEDDING_MODEL is not None:
+    if _EMBEDDING_MODEL is not None and not force_reload:
         return _EMBEDDING_MODEL
 
     models_to_try = [EMBEDDING_MODEL_NAME]
@@ -82,21 +83,24 @@ def get_embedding_model() -> SentenceTransformer | None:
         for local_only in (True, False):
             try:
                 mode_str = " (local_files_only=True)" if local_only else ""
-                print(f"--- Loading Embedding Model: {model_name}{mode_str} ---")
-                kwargs = {"local_files_only": True} if local_only else {}
+                print(f"--- Loading Embedding Model: {model_name}{mode_str} on CPU ---", flush=True)
+                kwargs: dict = {"device": "cpu"}
+                if local_only:
+                    kwargs["local_files_only"] = True
                 if "nomic" in model_name.lower():
                     kwargs["trust_remote_code"] = True
                 _EMBEDDING_MODEL = SentenceTransformer(model_name, **kwargs)
-                print(f"Successfully loaded {model_name}.")
+                print(f"Successfully loaded {model_name} on CPU.", flush=True)
                 return _EMBEDDING_MODEL
             except Exception as e:
-                print(f"Warning: Could not load embedding model {model_name}{mode_str}: {e}")
+                print(f"Warning: Could not load embedding model {model_name}{mode_str}: {e}", flush=True)
 
     return None
 
 
-# Eagerly initialize singleton on module load
-get_embedding_model()
+def get_embedding_model() -> SentenceTransformer | None:
+    """Backward-compatible accessor for the lazy-loaded SentenceTransformer model."""
+    return _get_or_load_embedding_model(force_reload=False)
 
 
 def _get_fallback_response(prompt: str) -> str:
@@ -470,14 +474,32 @@ def get_llm_response(prompt: str) -> str:
 def get_embedding_with_time(text: str) -> tuple[list[float], float]:
     """
     Generates a normalized embedding vector for `text` and returns `(embedding_list, embedding_time_ms)`.
+    Includes a ZeroGPU vector integrity check to guarantee non-zero, non-NaN L2-normalized vectors.
     """
     start_time = time.perf_counter()
-    model = get_embedding_model()
+    model = _get_or_load_embedding_model(force_reload=False)
     if model is None:
         return [], 0.0
-    embedding = model.encode(text, normalize_embeddings=True)
+
+    raw_emb = model.encode(text, normalize_embeddings=True)
+    vec = np.asarray(raw_emb, dtype=np.float32).reshape(-1)
+    norm = float(np.linalg.norm(vec))
+
+    # Vector Integrity Check: reload model on CPU if ZeroGPU zeroed or corrupted weights
+    if norm < 1e-6 or np.isnan(vec).any():
+        print("[llm_provider] Zero/NaN embedding detected; reloading SentenceTransformer on CPU...", flush=True)
+        model = _get_or_load_embedding_model(force_reload=True)
+        if model is None:
+            return [], 0.0
+        raw_emb = model.encode(text, normalize_embeddings=True)
+        vec = np.asarray(raw_emb, dtype=np.float32).reshape(-1)
+        norm = float(np.linalg.norm(vec))
+        if norm < 1e-6 or np.isnan(vec).any():
+            return [], 0.0
+
+    vec = vec / norm
     embedding_time_ms = (time.perf_counter() - start_time) * 1000.0
-    return embedding.tolist(), round(embedding_time_ms, 3)
+    return vec.tolist(), round(embedding_time_ms, 3)
 
 
 def get_embedding(text: str) -> list[float]:

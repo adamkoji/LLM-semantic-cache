@@ -102,6 +102,118 @@ function getFollowUpsForPrompt(promptText) {
   return [];
 }
 
+function renderInlineMarkdown(lineText) {
+  if (!lineText) return null;
+  const tokens = String(lineText).split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return tokens.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return (
+        <strong
+          key={idx}
+          className="font-semibold text-zinc-900 dark:text-white"
+        >
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      return (
+        <code
+          key={idx}
+          className="px-1.5 py-0.5 rounded-md bg-zinc-100 dark:bg-white/[0.08] text-indigo-700 dark:text-indigo-300 font-mono text-[13px]"
+        >
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return part;
+  });
+}
+
+function FormattedResponse({ text }) {
+  if (!text) return null;
+  const lines = String(text).split(/\r?\n/);
+  const elements = [];
+  let listItems = [];
+
+  function flushList(keyPrefix) {
+    if (listItems.length === 0) return;
+    elements.push(
+      <ul key={`list-${keyPrefix}`} className="space-y-1.5 my-2 pl-1">
+        {listItems.map((li, i) => (
+          <li key={i} className="flex items-start gap-2.5 leading-relaxed">
+            <span className="text-indigo-500 dark:text-indigo-400 font-semibold select-none mt-0.5">
+              {li.marker}
+            </span>
+            <span className="flex-1">{renderInlineMarkdown(li.content)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+    listItems = [];
+  }
+
+  lines.forEach((rawLine, idx) => {
+    const trimmed = rawLine.trim();
+    if (!trimmed) {
+      flushList(idx);
+      return;
+    }
+
+    if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed)) {
+      flushList(idx);
+      elements.push(
+        <hr
+          key={`hr-${idx}`}
+          className="border-black/[0.07] dark:border-white/[0.08] my-3"
+        />
+      );
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,4})\s+(.*)$/);
+    if (headingMatch) {
+      flushList(idx);
+      elements.push(
+        <h3
+          key={`h-${idx}`}
+          className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-4 mb-1.5"
+        >
+          {renderInlineMarkdown(headingMatch[2])}
+        </h3>
+      );
+      return;
+    }
+
+    const bulletMatch = trimmed.match(/^([*-])\s+(.*)$/);
+    if (bulletMatch) {
+      listItems.push({ marker: "•", content: bulletMatch[2] });
+      return;
+    }
+
+    const numMatch = trimmed.match(/^(\d+\.)\s+(.*)$/);
+    if (numMatch) {
+      listItems.push({ marker: numMatch[1], content: numMatch[2] });
+      return;
+    }
+
+    flushList(idx);
+    elements.push(
+      <p key={`p-${idx}`} className="leading-relaxed">
+        {renderInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  flushList("end");
+
+  return (
+    <div className="text-sm md:text-[15px] text-zinc-700 dark:text-zinc-300 space-y-2.5">
+      {elements}
+    </div>
+  );
+}
+
 export default function PlaygroundTab({
   threshold = 0.78,
   onThresholdChange,
@@ -560,9 +672,7 @@ export default function PlaygroundTab({
               </div>
 
               {/* Response Content */}
-              <div className="text-sm md:text-[15px] text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
-                {item.response}
-              </div>
+              <FormattedResponse text={item.response} />
 
               {/* Expandable 3-Stage Pipeline Breakdown Drawer */}
               {isTraceOpen && (
