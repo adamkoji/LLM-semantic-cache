@@ -1,13 +1,3 @@
----
-title: Semantiq API
-emoji: ⚡
-colorFrom: indigo
-colorTo: pink
-sdk: gradio
-app_file: app.py
-pinned: false
----
-
 <div align="center">
 
 # ⚡ Semantiq
